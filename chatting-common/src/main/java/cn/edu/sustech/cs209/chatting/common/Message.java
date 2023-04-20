@@ -1,6 +1,8 @@
 package cn.edu.sustech.cs209.chatting.common;
 
-public class Message {
+import java.io.Serializable;
+
+public class Message implements Serializable {
 
     private Long timestamp;
 
@@ -10,11 +12,20 @@ public class Message {
 
     private String data;
 
+    private String MessageType;
+
     public Message(Long timestamp, String sentBy, String sendTo, String data) {
         this.timestamp = timestamp;
         this.sentBy = sentBy;
         this.sendTo = sendTo;
         this.data = data;
+    }
+    public Message(Long timestamp, String sentBy, String sendTo, String data, String MessageType) {
+        this.timestamp = timestamp;
+        this.sentBy = sentBy;
+        this.sendTo = sendTo;
+        this.data = data;
+        this.MessageType = MessageType;
     }
 
     public Long getTimestamp() {
@@ -31,5 +42,21 @@ public class Message {
 
     public String getData() {
         return data;
+    }
+
+    public void setMessageType(String messageType) {
+        MessageType = messageType;
+    }
+    public String getMessageType() {
+        return MessageType;
+    }
+
+    @Override
+    public String toString() {
+        // use yyyy-MM-dd HH:mm:ss to format the timestamp
+        String timestampString = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
+            new java.util.Date(timestamp));
+        String messageTypeString = MessageType;
+        return "MessageType = "+ messageTypeString + "Time = " + timestampString + " sentBy = " + sentBy + " sendTo = " + sendTo + " data = " + data;
     }
 }

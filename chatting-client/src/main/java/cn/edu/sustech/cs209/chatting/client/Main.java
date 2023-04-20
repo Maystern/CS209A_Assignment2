@@ -18,6 +18,9 @@ public class Main extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("main.fxml"));
         stage.setScene(new Scene(fxmlLoader.load()));
         stage.setTitle("Chatting Client");
+
+        WindowsCloseEvent windowsCloseEvent = new WindowsCloseEvent(fxmlLoader);
+        stage.setOnCloseRequest(windowsCloseEvent);
         stage.show();
     }
 }
