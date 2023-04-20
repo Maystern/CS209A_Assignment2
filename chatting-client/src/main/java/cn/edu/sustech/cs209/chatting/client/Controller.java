@@ -1,14 +1,16 @@
 package cn.edu.sustech.cs209.chatting.client;
 
+import cn.edu.sustech.cs209.chatting.client.ChatClass.ChatType;
 import cn.edu.sustech.cs209.chatting.common.Message;
 import cn.edu.sustech.cs209.chatting.common.MessageType;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -29,30 +31,26 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.util.Pair;
-import jdk.vm.ci.meta.Value;
 
 public class Controller implements Initializable {
     @FXML
-    Label currentOnlineCnt;
+    Label currentOnlineCnt; // 当前在线用户数目,与JavaFX绑定
     @FXML
-    ListView<Message> chatContentList;
+    ListView<Message> chatContentList; // 右侧消息面板,与JavaFX绑定
     @FXML
-    ListView<String> chatList;
-
-    private ArrayList<String> OnlineUsers = new ArrayList<>();
-
-    private ArrayList<String> chatUsers = new ArrayList<>();
-
-    Map<String, ArrayList<Message>> chatContents = new HashMap<>();
-
+    ListView<ChatClass> chatList; // 左侧聊天列表,与JavaFX绑定
     @FXML
-    Label currentUsername;
+    Label currentUsername; // 当前登录用户名,与JavaFX绑定
 
-    String username;
+    private ArrayList<String> OnlineUsers = new ArrayList<>(); // 当前在线用户列表
 
-    private UserClientService userClientService = new UserClientService();
+    private ArrayList<ChatClass> chatInfo = new ArrayList<>(); // 当前用户的聊天信息
 
-    private Thread currentOnlineCntThread;
+    private String username; // 当前登录用户名
+
+    private UserClientService userClientService = new UserClientService(); // 当前用户服务
+
+    private Thread currentOnlineCntThread; // 当前用户在线数目线程,用于实时更新在线用户数目和在线用户列表
 
     @FXML
     private TextArea inputArea;
@@ -62,6 +60,7 @@ public class Controller implements Initializable {
         AtomicBoolean isLogin = new AtomicBoolean(false);
         AtomicInteger ButtonPressed = new AtomicInteger(0);
         while (!isLogin.get() && ButtonPressed.get() != 3) {
+            // 创建登录\注册对话框
             Dialog<Pair<String, String>> dialog = new Dialog<>();
             dialog.setTitle("Login and Register Dialog");
             dialog.setHeaderText("Please login or register your chat account.");
@@ -94,6 +93,7 @@ public class Controller implements Initializable {
                 registerButton.setDisable(newValue.trim().isEmpty());
             });
 
+
             dialog.getDialogPane().setContent(grid);
 
             Platform.runLater(() -> username.requestFocus());
@@ -116,15 +116,16 @@ public class Controller implements Initializable {
             Optional<Pair<String, String>> result = dialog.showAndWait();
             isLogin.set(false);
             result.ifPresent(usernamePassword -> {
-                if (ButtonPressed.get() == 3) {
+                if (ButtonPressed.get() == 3) { // 取消登录
                     Alert alert = new Alert(AlertType.INFORMATION);
                     alert.setTitle("Cancel Information");
                     alert.setHeaderText("CANCEL");
                     alert.setContentText("You have cancelled the login and register.");
                     alert.showAndWait();
                     isLogin.set(false);
-                } else if (ButtonPressed.get() == 2) {
+                } else if (ButtonPressed.get() == 2) { // 注册
                     if (userClientService.registerUser(usernamePassword.getKey(), usernamePassword.getValue())) {
+                        // 注册成功
                         Alert alert = new Alert(AlertType.INFORMATION);
                         alert.setTitle("Register Information");
                         alert.setHeaderText("SUCCESSFUL REGISTER");
@@ -132,6 +133,7 @@ public class Controller implements Initializable {
                         alert.showAndWait();
                         isLogin.set(false);
                     } else {
+                        // 注册失败
                         Alert alert = new Alert(AlertType.INFORMATION);
                         alert.setTitle("Register Information");
                         alert.setHeaderText("FAILED REGISTER");
@@ -139,8 +141,9 @@ public class Controller implements Initializable {
                         alert.showAndWait();
                         isLogin.set(false);
                     }
-                } else if (ButtonPressed.get() == 1) {
+                } else if (ButtonPressed.get() == 1) { // 登录
                     if (userClientService.checkUser(usernamePassword.getKey(), usernamePassword.getValue(), this)) {
+                        // 登录成功
                         Alert alert = new Alert(AlertType.INFORMATION);
                         alert.setTitle("Login Information");
                         alert.setHeaderText("SUCCESSFUL LOGIN");
@@ -149,6 +152,7 @@ public class Controller implements Initializable {
                         this.username = usernamePassword.getKey();
                         isLogin.set(true);
                     } else {
+                        // 登录失败
                         Alert alert = new Alert(AlertType.INFORMATION);
                         alert.setTitle("Login Information");
                         alert.setHeaderText("FAILED LOGIN");
@@ -161,9 +165,11 @@ public class Controller implements Initializable {
             });
         }
         if (isLogin.get()) {
+            // 登录成功
             chatContentList.setCellFactory(new MessageCellFactory());
             currentUsername.setText("Current User: " + username);
             currentOnlineCntThread = new Thread(() -> {
+                // 实时更新在线用户数目和在线用户列表
                 while (true) {
                     try {
                         Thread.sleep(100);
@@ -177,43 +183,43 @@ public class Controller implements Initializable {
                         for (String chatUser : onlineChatUsers) {
                             OnlineUsers.add(chatUser);
                         }
-//                        String selectedUser = chatList.getSelectionModel().getSelectedItem();
-//                        if (selectedUser == null) {
-//                            selectedUser = "";
-//                        }
-//                        for (int i = 0; i < chatUsers.size(); i++) {
-//                            if (!existInOnlineUsers(chatUsers.get(i))) {
-//                                System.out.println("Remove " + chatUsers.get(i));
-//                                chatList.getItems().remove(chatUsers.get(i));
-//                                chatUsers.remove(i);
-//                            }
-//                        }
-//                        if (existInChatList(selectedUser)) {
-//                            chatList.getSelectionModel().select(selectedUser);
-//                        }
                     });
                 }
             });
             currentOnlineCntThread.start();
             chatList.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                // 切换聊天窗口
                 chatContentList.getItems().clear();
                 if (newValue == null) return;
-                if (chatContents.get(newValue) == null) return;
-                for (Message message: chatContents.get(newValue)) {
-                    chatContentList.getItems().add(message);
+
+                System.out.println("all: ");
+                for (ChatClass chatClass: chatInfo) {
+                    System.out.println(chatClass.getChatIndex());
+                }
+                System.out.println("select: ");
+                System.out.println(newValue.getChatIndex());
+
+
+                for (ChatClass chatClass: chatInfo) {
+                    if (chatClass.getChatIndex().equals(newValue.getChatIndex())) {
+                        for (Message message: chatClass.getMessages()) {
+                            chatContentList.getItems().add(message);
+                        }
+                        break;
+                    }
                 }
             });
         } else {
             System.exit(0);
         }
     }
-    public boolean existInChatList(String username) {
-        for (String chatUser : chatUsers) {
-            if (chatUser.equals(username)) return true;
+    public boolean chatExistInChatList(String chatName) {
+        for (ChatClass chatClass: chatInfo) {
+            if (chatClass.getChatIndex().equals(chatName)) return true;
         }
         return false;
     }
-    public boolean existInOnlineUsers(String username) {
+    public boolean userExistInOnlineUsers(String username) {
         for (String onlineUser : OnlineUsers) {
             if (onlineUser.equals(username)) return true;
         }
@@ -249,16 +255,21 @@ public class Controller implements Initializable {
         // TODO: if the current user already chatted with the selected user, just open the chat with that user
         // TODO: otherwise, create a new chat item in the left panel, the title should be the selected user's name
 
-        if (!existInChatList(user.get())) {
-            chatUsers.add(user.get());
-            chatList.getItems().clear();
-            for (String chatUser : chatUsers) {
-                chatList.getItems().add(chatUser);
+        if (!chatExistInChatList(user.get())) {
+            ChatClass chatClass = new ChatClass(ChatType.oneToOne, user.get());
+            chatClass.addUsers(username);
+            chatClass.addUsers(user.get());
+            chatInfo.add(chatClass);
+            chatList.getItems().add(chatClass);
+        }
+        ChatClass tmpChatClass = null;
+        for (ChatClass chatClass: chatInfo) {
+            if (chatClass.getChatIndex().equals(user.get())) {
+                tmpChatClass = chatClass;
+                break;
             }
         }
-
-        chatList.getSelectionModel().select(user.get());
-
+        chatList.getSelectionModel().select(tmpChatClass);
     }
 
     /**
@@ -273,6 +284,101 @@ public class Controller implements Initializable {
      */
     @FXML
     public void createGroupChat() {
+        Stage stage = new Stage();
+        ListView<String> userSel = new ListView<>();
+        userSel.getSelectionModel().setSelectionMode(javafx.scene.control.SelectionMode.MULTIPLE);
+        for (String OnlineUser: OnlineUsers) {
+            userSel.getItems().add(OnlineUser);
+        }
+        Button okBtn = new Button("OK");
+        AtomicBoolean createGroupChatFlag = new AtomicBoolean(false);
+        okBtn.setOnAction(e -> {
+            ObservableList<String> users = userSel.getSelectionModel().getSelectedItems();
+            if (users.size() == 0) {
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setTitle("Chat Information");
+                alert.setHeaderText("FAILED TO CREATE GROUP CHAT");
+                alert.setContentText("Please select at least one user.");
+                alert.showAndWait();
+                return;
+            }
+            boolean includeSelf = false;
+            for (String user: users) {
+                if (user.equals(username)) {
+                    includeSelf = true;
+                    break;
+                }
+            }
+            if (!includeSelf) {
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setTitle("Chat Information");
+                alert.setHeaderText("FAILED TO CREATE GROUP CHAT");
+                alert.setContentText("Please select yourself.");
+                alert.showAndWait();
+                return;
+            }
+            createGroupChatFlag.set(true);
+            stage.close();
+        });
+        HBox box = new HBox(10);
+        box.setAlignment(Pos.CENTER);
+        box.setPadding(new Insets(20, 20, 20, 20));
+        box.getChildren().addAll(userSel, okBtn);
+        stage.setScene(new Scene(box));
+        stage.showAndWait();
+        ObservableList<String> selectedUsers = userSel.getSelectionModel().getSelectedItems();
+        if (!createGroupChatFlag.get()) return;
+        String chatIndex = "";
+
+        // order the selected users
+        String[] selectedUsersArray = new String[selectedUsers.size()];
+        for (int i = 0; i < selectedUsers.size(); i++) {
+            selectedUsersArray[i] = selectedUsers.get(i);
+        }
+        Arrays.sort(selectedUsersArray);
+
+        String selectUserWithoutItself = "";
+
+        for (String str: selectedUsersArray) {
+            if (!str.equals(username))
+                selectUserWithoutItself += str + ",";
+        }
+
+        List<String> tmpSelectedUsers = new ArrayList<>();
+        for (String selectedUser: selectedUsersArray) {
+            tmpSelectedUsers.add(selectedUser);
+        }
+
+        for (String selectedUser: tmpSelectedUsers) {
+            chatIndex += selectedUser + ",";
+        }
+        if (!chatExistInChatList(chatIndex)) {
+            ChatClass chatClass = new ChatClass(ChatType.group, chatIndex);
+            chatClass.addUsersAll(tmpSelectedUsers);
+            chatInfo.add(chatClass);
+            chatList.getItems().add(chatClass);
+        }
+        ChatClass tmpChatClass = null;
+        for (ChatClass chatClass: chatInfo) {
+            if (chatClass.getChatIndex().equals(chatIndex)) {
+                tmpChatClass = chatClass;
+                break;
+            }
+        }
+        chatList.getSelectionModel().select(tmpChatClass);
+        System.out.println("selectUserWithoutItself  =  " + selectUserWithoutItself);
+
+        Message message = new Message(
+            System.currentTimeMillis(),
+            username, selectUserWithoutItself,
+            (selectUserWithoutItself != null) ? "[System Message] " + username + " Username invites "+  selectUserWithoutItself +" and himself to join the group chat." : "[System Message] " + username + " Username invites himself to join the group chat.",
+            MessageType.MESSAGE_SEND_TO_GROUP);
+
+
+        userClientService.sendMessage(message);
+
+        tmpChatClass.addMessage(message);
+        chatContentList.getItems().add(message);
     }
 
     /**
@@ -283,8 +389,25 @@ public class Controller implements Initializable {
      */
     @FXML
     public void doSendMessage() {
-        String nowSelected = chatList.getSelectionModel().getSelectedItem();
-        if (!existInOnlineUsers(nowSelected)) {
+        ChatClass chatClass = chatList.getSelectionModel().getSelectedItem();
+        if (chatClass == null) {
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Chat Information");
+            alert.setHeaderText("FAILED TO SEND MESSAGE");
+            alert.setContentText("Please select a chat first.");
+            alert.showAndWait();
+            return;
+        }
+        String [] sendToUsers = chatClass.getChatIndex().split(",");
+        boolean allSendToUsersOnline = true;
+        for (String sendToUser: sendToUsers) {
+            if (sendToUser == null) continue;
+            if (!userExistInOnlineUsers(sendToUser)) {
+                allSendToUsersOnline = false;
+                break;
+            }
+        }
+        if (!allSendToUsersOnline) {
             Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle("Chat Information");
             alert.setHeaderText("FAILED TO SEND MESSAGE");
@@ -293,6 +416,21 @@ public class Controller implements Initializable {
             return;
         }
         String msg = inputArea.getText();
+        String msgType;
+        Message message;
+        if (chatClass.getChatType() == ChatType.group) {
+            msgType = MessageType.MESSAGE_SEND_TO_GROUP;
+            String sendTo = "";
+            for (String user: chatClass.getUsers()) {
+                if (user.equals(username)) continue;
+                sendTo += user + ",";
+            }
+            message = new Message(System.currentTimeMillis(), username, sendTo, msg, MessageType.MESSAGE_SEND_TO_GROUP);
+        } else {
+            msgType = MessageType.MESSAGE_SEND_TO_ONE;
+            String sendTo = chatClass.getUsers().get(1);
+            message = new Message(System.currentTimeMillis(), username, sendTo, msg, MessageType.MESSAGE_SEND_TO_ONE);
+        }
         if (msg.equals("")) {
             Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle("Chat Information");
@@ -301,21 +439,8 @@ public class Controller implements Initializable {
             alert.showAndWait();
             return;
         }
-        String chatUser = chatList.getSelectionModel().getSelectedItem();
-        if (chatUser == null) {
-            Alert alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle("Chat Information");
-            alert.setHeaderText("FAILED TO SEND MESSAGE");
-            alert.setContentText("Please select a chat first.");
-            alert.showAndWait();
-            return;
-        }
-        userClientService.sendMessage(chatUser, msg);
-        if (chatContents.get(chatUser) == null) {
-            chatContents.put(chatUser, new ArrayList<>());
-        };
-        Message message = new Message(System.currentTimeMillis(), username, chatUser, msg);
-        chatContents.get(chatUser).add(message);
+        userClientService.sendMessage(message);
+        chatClass.addMessage(message);
         chatContentList.getItems().add(message);
         inputArea.clear();
     }
@@ -367,23 +492,37 @@ public class Controller implements Initializable {
             };
         }
     }
-    // get charUsers
-    public ArrayList<String> getChatUsers() {
-        return chatUsers;
-    }
-    // get chatList
-    public ListView<String> getChatList() {
-        return chatList;
-    }
 
-
-    public void addMessage(String User, Message msg) {
-        if (chatContents.get(User) == null) {
-            chatContents.put(User, new ArrayList<>());
+    public ArrayList<String> getOneToOneChatUsers() {
+        ArrayList<String> oneToOneChatUsers = new ArrayList<>();
+        for (ChatClass chatClass: chatInfo) {
+            if (chatClass.getChatType() == ChatType.oneToOne) {
+                oneToOneChatUsers.add(chatClass.getUsers().get(1));
+            }
         }
-        chatContents.get(User).add(msg);
-        if (User.equals(chatList.getSelectionModel().getSelectedItem())) {
-            chatContentList.getItems().add(msg);
+        return oneToOneChatUsers;
+    }
+
+
+    // get chatList
+    public List<ChatClass> getChatInfo() {
+        return chatInfo;
+    }
+
+    public void addChat(ChatClass chatClass) {
+        chatInfo.add(chatClass);
+        chatList.getItems().add(chatClass);
+    }
+
+    public void addMessageToChat(String chatName, Message msg) {
+        for (ChatClass chatClass: chatInfo) {
+            if (chatClass.getChatIndex().equals(chatName)) {
+                chatClass.addMessage(msg);
+                if (chatList.getSelectionModel().getSelectedItem() != null && chatClass.getChatIndex().equals(chatList.getSelectionModel().getSelectedItem().getChatIndex())) {
+                    chatContentList.getItems().add(msg);
+                }
+                break;
+            }
         }
     }
 }

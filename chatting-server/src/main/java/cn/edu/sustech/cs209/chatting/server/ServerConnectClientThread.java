@@ -40,6 +40,9 @@ public class ServerConnectClientThread extends Thread{
         } else if (message.getMessageType().equals(MessageType.MESSAGE_SEND_TO_ONE)) {
           Message returnMessage = new Message(System.currentTimeMillis(), message.getSentBy(), message.getSendTo(), message.getData(), MessageType.MESSAGE_SEND_TO_ONE);
           ManageClientThreads.sendMessageToOne(message.getSendTo(), returnMessage);
+        } else if (message.getMessageType().equals(MessageType.MESSAGE_SEND_TO_GROUP)) {
+          Message returnMessage = new Message(System.currentTimeMillis(), message.getSentBy(), message.getSendTo(), message.getData(), MessageType.MESSAGE_SEND_TO_GROUP);
+          ManageClientThreads.sendMessageToGroup(message.getSendTo(), returnMessage);
         }
       } catch (IOException e) {
         throw new RuntimeException(e);

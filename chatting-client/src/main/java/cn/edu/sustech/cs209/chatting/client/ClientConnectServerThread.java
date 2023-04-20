@@ -1,10 +1,14 @@
 package cn.edu.sustech.cs209.chatting.client;
 
+import cn.edu.sustech.cs209.chatting.client.ChatClass.ChatType;
 import cn.edu.sustech.cs209.chatting.common.Message;
 import cn.edu.sustech.cs209.chatting.common.MessageType;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ListView;
@@ -17,14 +21,6 @@ public class ClientConnectServerThread extends Thread{
   public ClientConnectServerThread(Socket socket, Controller controller) {
     this.socket = socket;
     this.controller = controller;
-  }
-  private boolean isUserInChatUsers(String userName) {
-    for (String user : controller.getChatUsers()) {
-      if (user.equals(userName)) {
-        return true;
-      }
-    }
-    return false;
   }
   @Override
   public void run() {
@@ -39,32 +35,111 @@ public class ClientConnectServerThread extends Thread{
           nowOnlineUserCount = onlineUserLists.length;
           nowOnlineUsers = message.getData();
         } else if (message.getMessageType().equals(MessageType.MESSAGE_SEND_TO_ONE)) {
-          if (!isUserInChatUsers(message.getSentBy())) {
+          if (!controller.chatExistInChatList(message.getSentBy())) {
             Platform.runLater(new Runnable() {
               @Override
               public void run() {
-                String selectedUser = controller.getChatList().getSelectionModel().getSelectedItem();
-                controller.getChatUsers().add(message.getSentBy());
-                ListView<String> chatList = controller.getChatList();
-                chatList.getItems().clear();
-                for (String chatUser : controller.getChatUsers()) {
-                  chatList.getItems().add(chatUser);
-                }
-                if (selectedUser != null) {
-                  chatList.getSelectionModel().select(selectedUser);
-                }
+                ChatClass chatClass = new ChatClass(ChatType.oneToOne, message.getSentBy());
+                chatClass.addUsers(message.getSendTo());
+                chatClass.addUsers(message.getSentBy());
+                controller.addChat(chatClass);
               }
             });
           }
-          Message tmp = new Message(System.currentTimeMillis(), message.getSentBy(), controller.username, message.getData());
+          Message tmp = new Message(System.currentTimeMillis(), message.getSentBy(), message.getSendTo(), message.getData(), MessageType.MESSAGE_SEND_TO_ONE);
           Platform.runLater(new Runnable() {
             @Override
             public void run() {
-              controller.addMessage(message.getSentBy(), tmp);
+              controller.addMessageToChat(message.getSentBy(), tmp);
             }
           });
           System.out.println("fine.");
           System.out.println("[Message] " + message.getSentBy() + " said to you: " + message.getData());
+        } else if (message.getMessageType().equals(MessageType.MESSAGE_SEND_TO_GROUP)) {
+          String[] selectedUsersArray = message.getSendTo().split(",");
+          List<String> allUsers = new ArrayList<String>();
+
+          for (int i = 0; i < selectedUsersArray.length; i++)
+            allUsers.add(selectedUsersArray[i]);
+          allUsers.add(message.getSentBy());
+
+          // sort the allUsers by alphabetical order
+          String[] allUsersArray = allUsers.toArray(new String[0]);
+          Arrays.sort(allUsersArray);
+
+          String chatIndex = "";
+
+          for (String selectedUser: allUsersArray) {
+            chatIndex += selectedUser + ",";
+          }
+          if (!controller.chatExistInChatList(chatIndex)) {
+            Platform.runLater(new Runnable() {
+              @Override
+              public void run() {
+                String[] selectedUsersArray = message.getSendTo().split(",");
+                List<String> allUsers = new ArrayList<String>();
+
+                for (int i = 0; i < selectedUsersArray.length; i++)
+                  allUsers.add(selectedUsersArray[i]);
+                allUsers.add(message.getSentBy());
+
+                // sort the allUsers by alphabetical order
+                String[] allUsersArray = allUsers.toArray(new String[0]);
+                Arrays.sort(allUsersArray);
+
+                String chatIndex = "";
+
+                for (String selectedUser: allUsersArray) {
+                  chatIndex += selectedUser + ",";
+                }
+                List<String> tmpAllUsers = new ArrayList<String>();
+                for (String selectedUser: allUsersArray) {
+                  tmpAllUsers.add(selectedUser);
+                }
+                if (!controller.chatExistInChatList(chatIndex)) {
+                  ChatClass chatClass = new ChatClass(ChatType.group, chatIndex);
+                  chatClass.addUsersAll(tmpAllUsers);
+                  controller.getChatInfo().add(chatClass);
+                  controller.chatList.getItems().add(chatClass);
+                }
+                ChatClass tmpChatClass = null;
+                for (ChatClass chatClass: controller.getChatInfo()) {
+                  if (chatClass.getChatIndex().equals(chatIndex)) {
+                    tmpChatClass = chatClass;
+                    break;
+                  }
+                }
+                tmpChatClass.addMessage(message);
+              }
+            });
+          } else {
+            Platform.runLater(new Runnable() {
+              @Override
+              public void run() {
+                String[] selectedUsersArray = message.getSendTo().split(",");
+                List<String> allUsers = new ArrayList<String>();
+
+                for (int i = 0; i < selectedUsersArray.length; i++)
+                  allUsers.add(selectedUsersArray[i]);
+                allUsers.add(message.getSentBy());
+
+                // sort the allUsers by alphabetical order
+                String[] allUsersArray = allUsers.toArray(new String[0]);
+                Arrays.sort(allUsersArray);
+
+                String chatIndex = "";
+
+                for (String selectedUser: allUsersArray) {
+                  chatIndex += selectedUser + ",";
+                }
+
+                controller.addMessageToChat(chatIndex, message);
+              }
+            });
+          }
+
+
+          System.out.println("[Message] " + message.getSentBy() + " said to group " + message.getSendTo() + ": " + message.getData());
         }
       } catch (IOException e) {
             serverClosed = true;

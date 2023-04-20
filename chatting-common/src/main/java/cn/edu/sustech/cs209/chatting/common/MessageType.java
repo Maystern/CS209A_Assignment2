@@ -8,4 +8,5 @@ public interface MessageType {
   String MESSAGE_GET_ONLINE_USER_LISTS = "5"; // 获取在线用户列表
   String MESSAGE_LOGOUT = "6"; // 注销
   String MESSAGE_SEND_TO_ONE = "7"; // 发送消息给某人
+  String MESSAGE_SEND_TO_GROUP = "8"; // 发送消息给某群
 }

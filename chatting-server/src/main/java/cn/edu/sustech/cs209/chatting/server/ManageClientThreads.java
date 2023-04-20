@@ -14,7 +14,7 @@ public class ManageClientThreads {
   }
   public static void sendAllOnlineUsers() {
     String onlineUserLists = ManageClientThreads.getAllOnlineUsers();
-    Message message = new Message(System.currentTimeMillis(), "Server", "All", onlineUserLists);
+    Message message = new Message(System.currentTimeMillis(), "Server", "All", onlineUserLists, MessageType.MESSAGE_GET_ONLINE_USER_LISTS);
     message.setMessageType(MessageType.MESSAGE_GET_ONLINE_USER_LISTS);
     for (String username : hashMap.keySet()) {
       ServerConnectClientThread serverConnectClientThread = hashMap.get(username);
@@ -34,5 +34,15 @@ public class ManageClientThreads {
   public static void sendMessageToOne(String username, Message message) {
     ServerConnectClientThread serverConnectClientThread = hashMap.get(username);
     serverConnectClientThread.sendMessage(message);
+  }
+  public static void sendMessageToGroup(String group, Message message) {
+    System.out.println(message);
+    String [] groupMembers = group.split(",");
+    for (String groupMember : groupMembers) {
+      ServerConnectClientThread serverConnectClientThread = hashMap.get(groupMember);
+      if (serverConnectClientThread != null) {
+        serverConnectClientThread.sendMessage(message);
+      }
+    }
   }
 }

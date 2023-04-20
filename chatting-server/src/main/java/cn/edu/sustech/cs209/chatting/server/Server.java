@@ -71,7 +71,7 @@ public class Server {
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
         User user = (User) ois.readObject();
         if (user.getUserType() == UserType.LOGIN) {
-          Message message = new Message(System.currentTimeMillis(), "Server", user.getUsername(), "Login");
+          Message message = new Message(System.currentTimeMillis(), "Server", user.getUsername(), "Login", MessageType.MESSAGE_LOGIN_SUCCEED);
           if (isUserLoginValid(user.getUsername(), user.getPassword())){
             message.setMessageType(MessageType.MESSAGE_LOGIN_SUCCEED);
             oos.writeObject(message);
@@ -85,7 +85,7 @@ public class Server {
             socket.close();
           }
         } else if (user.getUserType() == UserType.REGISTER) {
-          Message message = new Message(System.currentTimeMillis(), "Server", user.getUsername(), "Register");
+          Message message = new Message(System.currentTimeMillis(), "Server", user.getUsername(), "Register", MessageType.MESSAGE_REGISTER_SUCCEED);
           if (isUserRegisterValid(user.getUsername(), user.getPassword())) {
             message.setMessageType(MessageType.MESSAGE_REGISTER_SUCCEED);
             oos.writeObject(message);

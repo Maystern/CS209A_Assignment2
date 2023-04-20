@@ -14,12 +14,6 @@ public class Message implements Serializable {
 
     private String MessageType;
 
-    public Message(Long timestamp, String sentBy, String sendTo, String data) {
-        this.timestamp = timestamp;
-        this.sentBy = sentBy;
-        this.sendTo = sendTo;
-        this.data = data;
-    }
     public Message(Long timestamp, String sentBy, String sendTo, String data, String MessageType) {
         this.timestamp = timestamp;
         this.sentBy = sentBy;
@@ -53,7 +47,6 @@ public class Message implements Serializable {
 
     @Override
     public String toString() {
-        // use yyyy-MM-dd HH:mm:ss to format the timestamp
         String timestampString = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
             new java.util.Date(timestamp));
         String messageTypeString = MessageType;

@@ -10,8 +10,8 @@ public class ChatClass {
     };
     private ChatType chatType;
     private String chatIndex;
-    List<Message> messages;
-    List<String> users;
+    private List<Message> messages;
+    private List<String> users;
     public ChatClass(ChatType chatType, String chatIndex) {
         this.chatType = chatType;
         this.chatIndex = chatIndex;
@@ -27,7 +27,43 @@ public class ChatClass {
     public void setMessages(List<Message> messages) {
         this.messages = messages;
     }
+
+    public List<Message> getMessages() {
+        return messages;
+    }
     public void setUsers(List<String> users) {
         this.users = users;
+    }
+
+    @Override
+    public String toString() {
+        if (chatType == ChatType.oneToOne) {
+            return users.get(1);
+        } else {
+            if (users.size() > 3) {
+                users.sort(String::compareTo);
+                return users.get(0) + ", " + users.get(1) + ", " + users.get(2) + "... (" + users.size() + ")";
+            } else {
+                users.sort(String::compareTo);
+                return String.join(", ", users) + " (" + users.size() + ")";
+            }
+        }
+    }
+
+    public void addMessage(Message message) {
+        messages.add(message);
+    }
+    public void addMessagesAll(List<Message> messages) {
+        this.messages.addAll(messages);
+    }
+    public void addUsers(String user) {
+        users.add(user);
+    }
+    public void addUsersAll(List<String> users) {
+        this.users.addAll(users);
+    }
+
+    public List<String> getUsers() {
+        return users;
     }
 }

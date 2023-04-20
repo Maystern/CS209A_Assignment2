@@ -48,9 +48,6 @@ public class UserClientService {
       ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
       Message ms = (Message) ois.readObject();
       if (ms.getMessageType().equals(MessageType.MESSAGE_REGISTER_SUCCEED)) {
-//        ClientConnectServerThread clientConnectServerThread = new ClientConnectServerThread(socket, chatUsers);
-//        clientConnectServerThread.start();
-//        ManageClientConnectThread.addClientConnectServerThread(username, clientConnectServerThread);
         socket.close();
         result = true;
       } else {
@@ -70,8 +67,8 @@ public class UserClientService {
   }
   public void Logout() {
     Message message;
-    for (String username: controller.getChatUsers()) {
-      if (controller.existInOnlineUsers(username)) {
+    for (String username: controller.getOneToOneChatUsers()) {
+      if (controller.userExistInOnlineUsers(username)) {
         message = new Message(System.currentTimeMillis(), user.getUsername(), username, "[System Message] The user is offline and the chat has temporarily ended.", MessageType.MESSAGE_SEND_TO_ONE);
         try {
           ObjectOutputStream oos = new ObjectOutputStream(ManageClientConnectThread.getClientConnectServerThread(user.getUsername()).getSocket().getOutputStream());
@@ -89,13 +86,13 @@ public class UserClientService {
       throw new RuntimeException(e);
     }
   }
-  public void sendMessage(String receiver, String message) {
-    Message ms = new Message(System.currentTimeMillis(), user.getUsername(), receiver, message, MessageType.MESSAGE_SEND_TO_ONE);
+  public void sendMessage(Message message) {
     try {
       ObjectOutputStream oos = new ObjectOutputStream(ManageClientConnectThread.getClientConnectServerThread(user.getUsername()).getSocket().getOutputStream());
-      oos.writeObject(ms);
+      oos.writeObject(message);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
+
 }
