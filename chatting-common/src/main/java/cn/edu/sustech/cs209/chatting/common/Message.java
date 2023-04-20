@@ -14,6 +14,23 @@ public class Message implements Serializable {
 
     private String MessageType;
 
+    private String attachmentName;
+    private byte [] attachment;
+
+    public void setAttachmentName(String attachmentName) {
+        this.attachmentName = attachmentName;
+    }
+    public String getAttachmentName() {
+        return attachmentName;
+    }
+    public byte[] getAttachment() {
+        return attachment;
+    }
+
+    public void setAttachment(byte[] attachment) {
+        this.attachment = attachment;
+    }
+
     public Message(Long timestamp, String sentBy, String sendTo, String data, String MessageType) {
         this.timestamp = timestamp;
         this.sentBy = sentBy;

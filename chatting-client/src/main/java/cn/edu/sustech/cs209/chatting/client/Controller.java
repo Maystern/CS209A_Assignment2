@@ -3,6 +3,8 @@ package cn.edu.sustech.cs209.chatting.client;
 import cn.edu.sustech.cs209.chatting.client.ChatClass.ChatType;
 import cn.edu.sustech.cs209.chatting.common.Message;
 import cn.edu.sustech.cs209.chatting.common.MessageType;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -22,6 +24,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
@@ -407,7 +410,7 @@ public class Controller implements Initializable {
                 break;
             }
         }
-        if (!allSendToUsersOnline) {
+        if (!allSendToUsersOnline && chatClass.getChatType() == ChatType.oneToOne) {
             Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle("Chat Information");
             alert.setHeaderText("FAILED TO SEND MESSAGE");
@@ -445,6 +448,85 @@ public class Controller implements Initializable {
         inputArea.clear();
     }
 
+    @FXML
+    public void doSendFile() {
+        // open a dialog to select a file
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select a file to send");
+        File file = fileChooser.showOpenDialog(null);
+        if (file == null) return;
+        ChatClass chatClass = chatList.getSelectionModel().getSelectedItem();
+        if (chatClass == null) {
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Chat Information");
+            alert.setHeaderText("FAILED TO SEND FILE");
+            alert.setContentText("Please select a chat first.");
+            alert.showAndWait();
+            return;
+        }
+        String [] sendToUsers = chatClass.getChatIndex().split(",");
+        boolean allSendToUsersOnline = true;
+        for (String sendToUser: sendToUsers) {
+            if (sendToUser == null) continue;
+            if (!userExistInOnlineUsers(sendToUser)) {
+                allSendToUsersOnline = false;
+                break;
+            }
+        }
+        if (!allSendToUsersOnline) {
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Chat Information");
+            alert.setHeaderText("FAILED TO SEND FILE");
+            alert.setContentText("The user you are chatting with is offline.");
+            alert.showAndWait();
+            return;
+        }
+        String msgType;
+        Message message1, message2;
+        if (chatClass.getChatType() == ChatType.group) {
+            msgType = MessageType.File_MESSAGE_SEND_TO_GROUP;
+            String sendTo = "";
+            for (String user: chatClass.getUsers()) {
+                if (user.equals(username)) continue;
+                sendTo += user + ",";
+            }
+            message1 = new Message(
+                System.currentTimeMillis(),
+                username,
+                sendTo,
+                "[File Delivery] User " + username + " sends you a file named \"" + file.getName() + "\".",
+                MessageType.File_MESSAGE_SEND_TO_GROUP);
+            message2 = new Message(
+                System.currentTimeMillis(),
+                username,
+                sendTo,
+                "[File Delivery] You send a file named \"" + file.getName() + "\" to the group.",
+                MessageType.File_MESSAGE_SEND_TO_GROUP);
+        } else {
+            msgType = MessageType.File_MESSAGE_SEND_TO_ONE;
+            String sendTo = chatClass.getUsers().get(1);
+            message1 = new Message(
+                System.currentTimeMillis(),
+                username,
+                sendTo,
+                "[File Delivery] User " + username + " sends you a file named \"" + file.getName() + "\".",
+                MessageType.File_MESSAGE_SEND_TO_ONE);
+            message2 = new Message(
+                System.currentTimeMillis(),
+                username,
+                sendTo,
+                "[File Delivery] You send a file named \"" + file.getName() + "\" to user " + sendTo + ".",
+                MessageType.File_MESSAGE_SEND_TO_ONE);
+        }
+        message1.setAttachmentName(file.getName());
+        message2.setAttachmentName(file.getName());
+        userClientService.sendFile(file, message1);
+        chatClass.addMessage(message2);
+        chatContentList.getItems().add(message2);
+    }
+
+
+
     public void close() {
         userClientService.Logout();
         System.exit(0);
@@ -470,7 +552,7 @@ public class Controller implements Initializable {
 
                     HBox wrapper = new HBox();
                     Label nameLabel = new Label(msg.getSentBy());
-                    Label msgLabel = new Label(msg.getData());
+                    Label msgLabel = new Label((String) msg.getData());
 
                     nameLabel.setPrefSize(50, 20);
                     nameLabel.setWrapText(true);

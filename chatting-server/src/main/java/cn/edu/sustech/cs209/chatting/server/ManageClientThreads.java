@@ -32,7 +32,9 @@ public class ManageClientThreads {
     return stringBuilder.toString();
   }
   public static void sendMessageToOne(String username, Message message) {
+
     ServerConnectClientThread serverConnectClientThread = hashMap.get(username);
+    System.out.println("sendMessageToOne " + message);
     serverConnectClientThread.sendMessage(message);
   }
   public static void sendMessageToGroup(String group, Message message) {

@@ -3,6 +3,8 @@ package cn.edu.sustech.cs209.chatting.client;
 import cn.edu.sustech.cs209.chatting.client.ChatClass.ChatType;
 import cn.edu.sustech.cs209.chatting.common.Message;
 import cn.edu.sustech.cs209.chatting.common.MessageType;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
@@ -31,10 +33,10 @@ public class ClientConnectServerThread extends Thread{
         Message message = (Message) ois.readObject();
         System.out.println("[MessageInfo] " + message);
         if (message.getMessageType().equals(MessageType.MESSAGE_GET_ONLINE_USER_LISTS)) {
-          String[] onlineUserLists = message.getData().split(",");
+          String[] onlineUserLists =  ((String) message.getData()).split(",");
           nowOnlineUserCount = onlineUserLists.length;
-          nowOnlineUsers = message.getData();
-        } else if (message.getMessageType().equals(MessageType.MESSAGE_SEND_TO_ONE)) {
+          nowOnlineUsers = (String) message.getData();
+        } else if (message.getMessageType().equals(MessageType.MESSAGE_SEND_TO_ONE) || message.getMessageType().equals(MessageType.File_MESSAGE_SEND_TO_ONE)) {
           if (!controller.chatExistInChatList(message.getSentBy())) {
             Platform.runLater(new Runnable() {
               @Override
@@ -46,7 +48,7 @@ public class ClientConnectServerThread extends Thread{
               }
             });
           }
-          Message tmp = new Message(System.currentTimeMillis(), message.getSentBy(), message.getSendTo(), message.getData(), MessageType.MESSAGE_SEND_TO_ONE);
+          Message tmp = new Message(System.currentTimeMillis(), message.getSentBy(), message.getSendTo(), (String) message.getData(), MessageType.MESSAGE_SEND_TO_ONE);
           Platform.runLater(new Runnable() {
             @Override
             public void run() {
@@ -55,6 +57,23 @@ public class ClientConnectServerThread extends Thread{
           });
           System.out.println("fine.");
           System.out.println("[Message] " + message.getSentBy() + " said to you: " + message.getData());
+
+          if (message.getMessageType().equals(MessageType.File_MESSAGE_SEND_TO_ONE)) {
+            try {
+              System.out.println("fine: " + message.getAttachmentName());
+              File file = new File(message.getAttachmentName());
+              if (!file.exists()) {
+                file.createNewFile();
+              }
+              FileOutputStream fos = new FileOutputStream(file);
+              fos.write(message.getAttachment());
+              fos.close();
+            } catch (IOException e) {
+              e.printStackTrace();
+            }
+          }
+
+
         } else if (message.getMessageType().equals(MessageType.MESSAGE_SEND_TO_GROUP)) {
           String[] selectedUsersArray = message.getSendTo().split(",");
           List<String> allUsers = new ArrayList<String>();
