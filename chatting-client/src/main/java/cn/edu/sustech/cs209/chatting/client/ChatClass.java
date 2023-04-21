@@ -37,17 +37,32 @@ public class ChatClass {
 
     @Override
     public String toString() {
+        String str = "";
         if (chatType == ChatType.oneToOne) {
-            return users.get(1);
+            str = str + users.get(1);
         } else {
             if (users.size() > 3) {
                 users.sort(String::compareTo);
-                return users.get(0) + ", " + users.get(1) + ", " + users.get(2) + "... (" + users.size() + ")";
+                str = str + users.get(0) + ", " + users.get(1) + ", " + users.get(2) + "... (" + users.size() + ")";
             } else {
                 users.sort(String::compareTo);
-                return String.join(", ", users) + " (" + users.size() + ")";
+                str = str + String.join(", ", users) + " (" + users.size() + ")";
             }
         }
+        Long latestMessageStamp = -1L;
+        for (Message message : messages) {
+            if (message.getTimestamp() > latestMessageStamp) {
+                latestMessageStamp = message.getTimestamp();
+            }
+        }
+        String latestTime = " [";
+        if (latestMessageStamp.equals(-1L)) {
+            latestTime = latestTime + "None]";
+        } else {
+            latestTime = latestTime + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(latestMessageStamp)) + "]";
+        }
+        str += latestTime;
+        return str;
     }
 
     public void addMessage(Message message) {
@@ -65,5 +80,14 @@ public class ChatClass {
 
     public List<String> getUsers() {
         return users;
+    }
+    public Long getLatestMessageStamp() {
+        Long latestMessageStamp = -1L;
+        for (Message message : messages) {
+            if (message.getTimestamp() > latestMessageStamp) {
+                latestMessageStamp = message.getTimestamp();
+            }
+        }
+        return latestMessageStamp;
     }
 }

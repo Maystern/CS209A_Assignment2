@@ -12,7 +12,10 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -27,6 +30,7 @@ import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import javafx.scene.control.ListView;
 
 import java.net.URL;
 import java.util.Objects;
@@ -264,6 +268,7 @@ public class Controller implements Initializable {
             chatClass.addUsers(user.get());
             chatInfo.add(chatClass);
             chatList.getItems().add(chatClass);
+            sortChatList();
         }
         ChatClass tmpChatClass = null;
         for (ChatClass chatClass: chatInfo) {
@@ -360,6 +365,7 @@ public class Controller implements Initializable {
             chatClass.addUsersAll(tmpSelectedUsers);
             chatInfo.add(chatClass);
             chatList.getItems().add(chatClass);
+            sortChatList();
         }
         ChatClass tmpChatClass = null;
         for (ChatClass chatClass: chatInfo) {
@@ -382,6 +388,7 @@ public class Controller implements Initializable {
 
         tmpChatClass.addMessage(message);
         chatContentList.getItems().add(message);
+        sortChatList();
     }
 
     /**
@@ -446,6 +453,8 @@ public class Controller implements Initializable {
         chatClass.addMessage(message);
         chatContentList.getItems().add(message);
         inputArea.clear();
+        sortChatList();
+        chatList.refresh();
     }
 
     @FXML
@@ -473,7 +482,7 @@ public class Controller implements Initializable {
                 break;
             }
         }
-        if (!allSendToUsersOnline) {
+        if (!allSendToUsersOnline && chatClass.getChatType() == ChatType.oneToOne) {
             Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle("Chat Information");
             alert.setHeaderText("FAILED TO SEND FILE");
@@ -483,6 +492,7 @@ public class Controller implements Initializable {
         }
         String msgType;
         Message message1, message2;
+        File directory = new File("");
         if (chatClass.getChatType() == ChatType.group) {
             msgType = MessageType.File_MESSAGE_SEND_TO_GROUP;
             String sendTo = "";
@@ -523,6 +533,8 @@ public class Controller implements Initializable {
         userClientService.sendFile(file, message1);
         chatClass.addMessage(message2);
         chatContentList.getItems().add(message2);
+        sortChatList();
+        chatList.refresh();
     }
 
 
@@ -594,6 +606,7 @@ public class Controller implements Initializable {
     public void addChat(ChatClass chatClass) {
         chatInfo.add(chatClass);
         chatList.getItems().add(chatClass);
+        sortChatList();
     }
 
     public void addMessageToChat(String chatName, Message msg) {
@@ -603,7 +616,36 @@ public class Controller implements Initializable {
                 if (chatList.getSelectionModel().getSelectedItem() != null && chatClass.getChatIndex().equals(chatList.getSelectionModel().getSelectedItem().getChatIndex())) {
                     chatContentList.getItems().add(msg);
                 }
+                sortChatList();
                 break;
+            }
+        }
+    }
+    public String getUsername() {
+        return username;
+    }
+    public void sortChatList() {
+        String selectedChatIndex = chatList.getSelectionModel().getSelectedItem() == null ? null : chatList.getSelectionModel().getSelectedItem().getChatIndex();
+
+        chatList.getItems().sort(new Comparator<ChatClass>() {
+            @Override
+            public int compare(ChatClass o1, ChatClass o2) {
+                // 按照时间大小降序排列
+                if (o1.getLatestMessageStamp() == o2.getLatestMessageStamp()) {
+                    return 0;
+                } else if (o1.getLatestMessageStamp() < o2.getLatestMessageStamp()) {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            }
+        });
+        if (selectedChatIndex != null) {
+            for (int i = 0; i < chatList.getItems().size(); i++) {
+                if (chatList.getItems().get(i).getChatIndex().equals(selectedChatIndex)) {
+                    chatList.getSelectionModel().select(i);
+                    break;
+                }
             }
         }
     }

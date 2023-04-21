@@ -45,6 +45,7 @@ public class ClientConnectServerThread extends Thread{
                 chatClass.addUsers(message.getSendTo());
                 chatClass.addUsers(message.getSentBy());
                 controller.addChat(chatClass);
+                controller.chatList.refresh();
               }
             });
           }
@@ -53,6 +54,7 @@ public class ClientConnectServerThread extends Thread{
             @Override
             public void run() {
               controller.addMessageToChat(message.getSentBy(), tmp);
+              controller.chatList.refresh();
             }
           });
           System.out.println("fine.");
@@ -60,8 +62,19 @@ public class ClientConnectServerThread extends Thread{
 
           if (message.getMessageType().equals(MessageType.File_MESSAGE_SEND_TO_ONE)) {
             try {
-              System.out.println("fine: " + message.getAttachmentName());
-              File file = new File(message.getAttachmentName());
+              File folder = new File("ChatFiles");
+              if (!folder.exists()) {
+                folder.mkdir();
+              }
+              folder = new File(folder, controller.getUsername());
+              if (!folder.exists()) {
+                folder.mkdir();
+              }
+              folder = new File(folder, "FileRecv");
+              if (!folder.exists()) {
+                folder.mkdir();
+              }
+              File file = new File(folder, message.getAttachmentName());
               if (!file.exists()) {
                 file.createNewFile();
               }
@@ -74,7 +87,7 @@ public class ClientConnectServerThread extends Thread{
           }
 
 
-        } else if (message.getMessageType().equals(MessageType.MESSAGE_SEND_TO_GROUP)) {
+        } else if (message.getMessageType().equals(MessageType.MESSAGE_SEND_TO_GROUP) || message.getMessageType().equals(MessageType.File_MESSAGE_SEND_TO_GROUP)) {
           String[] selectedUsersArray = message.getSendTo().split(",");
           List<String> allUsers = new ArrayList<String>();
 
@@ -120,6 +133,7 @@ public class ClientConnectServerThread extends Thread{
                   chatClass.addUsersAll(tmpAllUsers);
                   controller.getChatInfo().add(chatClass);
                   controller.chatList.getItems().add(chatClass);
+                  controller.sortChatList();
                 }
                 ChatClass tmpChatClass = null;
                 for (ChatClass chatClass: controller.getChatInfo()) {
@@ -129,6 +143,7 @@ public class ClientConnectServerThread extends Thread{
                   }
                 }
                 tmpChatClass.addMessage(message);
+                controller.chatList.refresh();
               }
             });
           } else {
@@ -153,10 +168,37 @@ public class ClientConnectServerThread extends Thread{
                 }
 
                 controller.addMessageToChat(chatIndex, message);
+                controller.chatList.refresh();
               }
             });
           }
 
+
+          if (message.getMessageType().equals(MessageType.File_MESSAGE_SEND_TO_GROUP)) {
+            try {
+              File folder = new File("ChatFiles");
+              if (!folder.exists()) {
+                folder.mkdir();
+              }
+              folder = new File(folder, controller.getUsername());
+              if (!folder.exists()) {
+                folder.mkdir();
+              }
+              folder = new File(folder, "FileRecv");
+              if (!folder.exists()) {
+                folder.mkdir();
+              }
+              File file = new File(folder, message.getAttachmentName());
+              if (!file.exists()) {
+                file.createNewFile();
+              }
+              FileOutputStream fos = new FileOutputStream(file);
+              fos.write(message.getAttachment());
+              fos.close();
+            } catch (IOException e) {
+              e.printStackTrace();
+            }
+          }
 
           System.out.println("[Message] " + message.getSentBy() + " said to group " + message.getSendTo() + ": " + message.getData());
         }

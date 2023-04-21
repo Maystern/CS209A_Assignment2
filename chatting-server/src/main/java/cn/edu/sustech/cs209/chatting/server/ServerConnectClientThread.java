@@ -44,13 +44,15 @@ public class ServerConnectClientThread extends Thread{
           Message returnMessage = new Message(System.currentTimeMillis(), message.getSentBy(), message.getSendTo(), (String) message.getData(), MessageType.MESSAGE_SEND_TO_GROUP);
           ManageClientThreads.sendMessageToGroup(message.getSendTo(), returnMessage);
         } else if (message.getMessageType().equals(MessageType.File_MESSAGE_SEND_TO_ONE)) {
-
           Message returnMessage = new Message(System.currentTimeMillis(), message.getSentBy(), message.getSendTo(), (String) message.getData(), MessageType.File_MESSAGE_SEND_TO_ONE);
           returnMessage.setAttachment(message.getAttachment());
           returnMessage.setAttachmentName(message.getAttachmentName());
           ManageClientThreads.sendMessageToOne(message.getSendTo(), returnMessage);
         } else if (message.getMessageType().equals(MessageType.File_MESSAGE_SEND_TO_GROUP)) {
-          ManageClientThreads.sendMessageToGroup(message.getSendTo(), message);
+          Message returnMessage = new Message(System.currentTimeMillis(), message.getSentBy(), message.getSendTo(), (String) message.getData(), MessageType.File_MESSAGE_SEND_TO_GROUP);
+          returnMessage.setAttachment(message.getAttachment());
+          returnMessage.setAttachmentName(message.getAttachmentName());
+          ManageClientThreads.sendMessageToGroup(message.getSendTo(), returnMessage);
         }
       } catch (IOException e) {
         throw new RuntimeException(e);

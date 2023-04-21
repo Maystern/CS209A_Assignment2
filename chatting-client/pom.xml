@@ -12,7 +12,7 @@
     <artifactId>chatting-client</artifactId>
 
     <properties>
-        <javafx.version>19.0.2.1</javafx.version>
+        <javafx.version>11</javafx.version>
 
         <main-class.name>cn.edu.sustech.cs209.chatting.client.Main</main-class.name>
     </properties>
