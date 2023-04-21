@@ -45,7 +45,7 @@ public class ClientConnectServerThread extends Thread{
                 chatClass.addUsers(message.getSendTo());
                 chatClass.addUsers(message.getSentBy());
                 controller.addChat(chatClass);
-                controller.chatList.refresh();
+                controller.sortChatList();
               }
             });
           }
@@ -54,7 +54,7 @@ public class ClientConnectServerThread extends Thread{
             @Override
             public void run() {
               controller.addMessageToChat(message.getSentBy(), tmp);
-              controller.chatList.refresh();
+              controller.sortChatList();
             }
           });
           System.out.println("fine.");
@@ -143,7 +143,7 @@ public class ClientConnectServerThread extends Thread{
                   }
                 }
                 tmpChatClass.addMessage(message);
-                controller.chatList.refresh();
+                controller.sortChatList();
               }
             });
           } else {
@@ -168,7 +168,7 @@ public class ClientConnectServerThread extends Thread{
                 }
 
                 controller.addMessageToChat(chatIndex, message);
-                controller.chatList.refresh();
+                controller.sortChatList();
               }
             });
           }
@@ -207,7 +207,7 @@ public class ClientConnectServerThread extends Thread{
             public void run() {
               // remove the user from the online list
               controller.getOnlineUsers().remove(message.getData());
-              controller.chatList.refresh();
+              controller.sortChatList();
             }
           });
           System.out.println("[Message] " + message.getSentBy() + " said to all: " + message.getData());
@@ -217,7 +217,7 @@ public class ClientConnectServerThread extends Thread{
             public void run() {
               // add the user to the online list
               controller.getOnlineUsers().add(message.getData());
-              controller.chatList.refresh();
+              controller.sortChatList();
               ChatClass tmpChatClass = null;
               Message addedMessage = new Message(System.currentTimeMillis(), message.getData(), controller.getUsername(),
                   "[System Message] User " + message.getData() + " is currently online and can continue chatting.",
@@ -233,6 +233,7 @@ public class ClientConnectServerThread extends Thread{
               if (selectedChatClass != null && tmpChatClass != null && selectedChatClass.getChatIndex().equals(tmpChatClass.getChatIndex())) {
                 controller.chatContentList.getItems().add(addedMessage);
               }
+              controller.sortChatList();
             }
           });
           System.out.println("[Message] " + message.getSentBy() + " said to all: " + message.getData());

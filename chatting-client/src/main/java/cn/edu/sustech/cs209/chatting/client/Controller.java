@@ -224,6 +224,33 @@ public class Controller implements Initializable {
                     }
                 }
             });
+
+            // open ChatFiles/username/chatInfo.txt
+            currentOnlineCnt.setText("Current Online: " + userClientService.getCurrentOnlineCnt());
+            OnlineUsers.clear();
+            String[] onlineChatUsers = userClientService.getChatList().split(",");
+            for (String chatUser : onlineChatUsers) {
+                OnlineUsers.add(chatUser);
+            }
+            File chatInfoFile = new File("ChatFiles//" + username + "//chatInfo.txt");
+            if (chatInfoFile.exists()) {
+                // 读取聊天记录
+                try {
+                    ObjectInputStream in = new ObjectInputStream(new FileInputStream(chatInfoFile.getPath()));
+                    List<ChatClass> historyChatList = (List<ChatClass>) in.readObject();
+                    in.close();
+                    chatInfo.addAll(historyChatList);
+                    for (ChatClass chatClass: historyChatList) {
+                        chatList.getItems().add(chatClass);
+                    }
+                    sortChatList();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
         } else {
             System.exit(0);
         }
@@ -462,7 +489,6 @@ public class Controller implements Initializable {
         chatContentList.getItems().add(message);
         inputArea.clear();
         sortChatList();
-        chatList.refresh();
     }
 
     @FXML
@@ -542,13 +568,28 @@ public class Controller implements Initializable {
         chatClass.addMessage(message2);
         chatContentList.getItems().add(message2);
         sortChatList();
-        chatList.refresh();
     }
 
 
 
     public void close(){
         userClientService.Logout();
+        File chatInfoFile = new File("ChatFiles//" + username + "//chatInfo.txt");
+        if (chatInfoFile.exists()) {
+            try {
+                chatInfoFile.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        try {
+            ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(chatInfoFile));
+            List<ChatClass> list = new ArrayList<>(chatInfo);
+            out.writeObject(list);
+            out.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         System.exit(0);
     }
 
@@ -656,5 +697,6 @@ public class Controller implements Initializable {
                 }
             }
         }
+        chatList.refresh();
     }
 }
