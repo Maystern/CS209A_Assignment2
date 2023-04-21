@@ -78,7 +78,7 @@ public class Server {
             ServerConnectClientThread serverConnectClientThread = new ServerConnectClientThread(socket, user.getUsername());
             serverConnectClientThread.start();
             ManageClientThreads.addClientThread(user.getUsername(), serverConnectClientThread);
-            ManageClientThreads.sendAllOnlineUsers();
+            ManageClientThreads.sendAllOnlineUsers(user.getUsername(), false, true);
           } else {
             message.setMessageType(MessageType.MESSAGE_LOGIN_FAILED);
             oos.writeObject(message);

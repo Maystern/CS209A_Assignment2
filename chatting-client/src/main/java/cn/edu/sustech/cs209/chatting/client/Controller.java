@@ -5,6 +5,11 @@ import cn.edu.sustech.cs209.chatting.common.Message;
 import cn.edu.sustech.cs209.chatting.common.MessageType;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -49,7 +54,7 @@ public class Controller implements Initializable {
     @FXML
     Label currentUsername; // 当前登录用户名,与JavaFX绑定
 
-    private ArrayList<String> OnlineUsers = new ArrayList<>(); // 当前在线用户列表
+    private static ArrayList<String> OnlineUsers = new ArrayList<>(); // 当前在线用户列表
 
     private ArrayList<ChatClass> chatInfo = new ArrayList<>(); // 当前用户的聊天信息
 
@@ -62,6 +67,9 @@ public class Controller implements Initializable {
     @FXML
     private TextArea inputArea;
 
+    public List<String> getOnlineUsers() {
+        return OnlineUsers;
+    }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         AtomicBoolean isLogin = new AtomicBoolean(false);
@@ -226,7 +234,7 @@ public class Controller implements Initializable {
         }
         return false;
     }
-    public boolean userExistInOnlineUsers(String username) {
+    public static boolean userExistInOnlineUsers(String username) {
         for (String onlineUser : OnlineUsers) {
             if (onlineUser.equals(username)) return true;
         }
@@ -539,7 +547,7 @@ public class Controller implements Initializable {
 
 
 
-    public void close() {
+    public void close(){
         userClientService.Logout();
         System.exit(0);
     }

@@ -72,7 +72,9 @@ public class UserClientService {
     Message message;
     for (String username: controller.getOneToOneChatUsers()) {
       if (controller.userExistInOnlineUsers(username)) {
-        message = new Message(System.currentTimeMillis(), user.getUsername(), username, "[System Message] The user is offline and the chat has temporarily ended.", MessageType.MESSAGE_SEND_TO_ONE);
+        message = new Message(System.currentTimeMillis(), user.getUsername(), username,
+            "[System Message] The user " + user.getUsername() + " is offline and the chat has temporarily ended.",
+            MessageType.MESSAGE_SEND_TO_ONE);
         try {
           ObjectOutputStream oos = new ObjectOutputStream(ManageClientConnectThread.getClientConnectServerThread(user.getUsername()).getSocket().getOutputStream());
           oos.writeObject(message);

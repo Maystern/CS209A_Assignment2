@@ -12,13 +12,26 @@ public class ManageClientThreads {
   public static ServerConnectClientThread getClientThread(String username) {
     return hashMap.get(username);
   }
-  public static void sendAllOnlineUsers() {
+  public static void sendAllOnlineUsers(String Username, boolean isLogout, boolean isLogin) {
     String onlineUserLists = ManageClientThreads.getAllOnlineUsers();
     Message message = new Message(System.currentTimeMillis(), "Server", "All", onlineUserLists, MessageType.MESSAGE_GET_ONLINE_USER_LISTS);
-    message.setMessageType(MessageType.MESSAGE_GET_ONLINE_USER_LISTS);
     for (String username : hashMap.keySet()) {
       ServerConnectClientThread serverConnectClientThread = hashMap.get(username);
       serverConnectClientThread.sendMessage(message);
+    }
+    if (isLogout) {
+      Message returnMessage = new Message(System.currentTimeMillis(), "Server", "All", Username, MessageType.MESSAGE_LOGOUT);
+      for (String username : hashMap.keySet()) {
+        ServerConnectClientThread serverConnectClientThread = hashMap.get(username);
+        serverConnectClientThread.sendMessage(returnMessage);
+      }
+    }
+    if (isLogin) {
+      Message returnMessage = new Message(System.currentTimeMillis(), "Server", "All", Username, MessageType.MESSAGE_LOGIN);
+      for (String username : hashMap.keySet()) {
+        ServerConnectClientThread serverConnectClientThread = hashMap.get(username);
+        serverConnectClientThread.sendMessage(returnMessage);
+      }
     }
   }
   public static void removeClientThread(String username) {

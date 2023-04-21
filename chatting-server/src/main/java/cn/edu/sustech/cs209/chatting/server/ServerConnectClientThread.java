@@ -35,7 +35,7 @@ public class ServerConnectClientThread extends Thread{
           oos.writeObject(returnMessage);
         } else if (message.getMessageType().equals(MessageType.MESSAGE_LOGOUT)) {
           ManageClientThreads.removeClientThread(message.getSentBy());
-          ManageClientThreads.sendAllOnlineUsers();
+          ManageClientThreads.sendAllOnlineUsers(message.getSentBy(), true, false);
           break;
         } else if (message.getMessageType().equals(MessageType.MESSAGE_SEND_TO_ONE)) {
           Message returnMessage = new Message(System.currentTimeMillis(), message.getSentBy(), message.getSendTo(), (String) message.getData(), MessageType.MESSAGE_SEND_TO_ONE);

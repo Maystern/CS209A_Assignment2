@@ -201,6 +201,41 @@ public class ClientConnectServerThread extends Thread{
           }
 
           System.out.println("[Message] " + message.getSentBy() + " said to group " + message.getSendTo() + ": " + message.getData());
+        } else if (message.getMessageType().equals(MessageType.MESSAGE_LOGOUT)) {
+          Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+              // remove the user from the online list
+              controller.getOnlineUsers().remove(message.getData());
+              controller.chatList.refresh();
+            }
+          });
+          System.out.println("[Message] " + message.getSentBy() + " said to all: " + message.getData());
+        } else if (message.getMessageType().equals(MessageType.MESSAGE_LOGIN)) {
+          Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+              // add the user to the online list
+              controller.getOnlineUsers().add(message.getData());
+              controller.chatList.refresh();
+              ChatClass tmpChatClass = null;
+              Message addedMessage = new Message(System.currentTimeMillis(), message.getData(), controller.getUsername(),
+                  "[System Message] User " + message.getData() + " is currently online and can continue chatting.",
+                  MessageType.MESSAGE_LOGIN);
+              for (ChatClass chatClass: controller.getChatInfo()) {
+                if (chatClass.getChatType() == ChatType.oneToOne && chatClass.getUsers().get(1).equals(message.getData())) {
+                  tmpChatClass = chatClass;
+                  chatClass.addMessage(addedMessage);
+                  break;
+                }
+              }
+              ChatClass selectedChatClass = controller.chatList.getSelectionModel().getSelectedItem();
+              if (selectedChatClass != null && tmpChatClass != null && selectedChatClass.getChatIndex().equals(tmpChatClass.getChatIndex())) {
+                controller.chatContentList.getItems().add(addedMessage);
+              }
+            }
+          });
+          System.out.println("[Message] " + message.getSentBy() + " said to all: " + message.getData());
         }
       } catch (IOException e) {
             serverClosed = true;

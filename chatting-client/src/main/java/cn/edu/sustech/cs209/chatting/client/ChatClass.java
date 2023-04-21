@@ -1,10 +1,11 @@
 package cn.edu.sustech.cs209.chatting.client;
 
 import cn.edu.sustech.cs209.chatting.common.Message;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatClass {
+public class ChatClass implements Serializable {
     public enum ChatType {
         oneToOne, group;
     };
@@ -39,6 +40,11 @@ public class ChatClass {
     public String toString() {
         String str = "";
         if (chatType == ChatType.oneToOne) {
+            if (Controller.userExistInOnlineUsers(users.get(1))) {
+                str += "[Online] ";
+            } else {
+                str += "[Offline] ";
+            }
             str = str + users.get(1);
         } else {
             if (users.size() > 3) {

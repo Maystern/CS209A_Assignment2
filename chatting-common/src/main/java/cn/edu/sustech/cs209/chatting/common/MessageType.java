@@ -11,4 +11,5 @@ public interface MessageType {
   String MESSAGE_SEND_TO_GROUP = "8"; // 发送消息给某群
   String File_MESSAGE_SEND_TO_ONE = "9"; // 发送文件给某人
   String File_MESSAGE_SEND_TO_GROUP = "10"; // 发送文件给某群
+  String MESSAGE_LOGIN = "11"; // 登录
 }
