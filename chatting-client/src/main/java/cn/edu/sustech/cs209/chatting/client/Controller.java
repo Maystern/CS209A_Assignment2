@@ -436,9 +436,9 @@ public class Controller implements Initializable {
     Message message = new Message(
         System.currentTimeMillis(),
         username, selectUserWithoutItself,
-        (selectUserWithoutItself != null) ? "[System Message] " + username + " Username invites "
-            + selectUserWithoutItself + " and himself to join the group chat."
-            : "[System Message] " + username + " Username invites himself to join the group chat.",
+        "[System Message] User " + username
+            + " create the group chat.\n List of users participating in group chat: "
+            + tmpChatClass.getUsers() + ".\n",
         MessageType.MESSAGE_SEND_TO_GROUP);
 
     userClientService.sendMessage(message);
@@ -610,6 +610,16 @@ public class Controller implements Initializable {
 
   public void close() {
     userClientService.Logout();
+    //如果没有ChatFiles文件夹，创建一个
+    File file = new File("ChatFiles");
+    if (!file.exists()) {
+      file.mkdir();
+    }
+    //如果没有用户文件夹，创建一个
+    File userFile = new File("ChatFiles//" + username);
+    if (!userFile.exists()) {
+      userFile.mkdir();
+    }
     File chatInfoFile = new File("ChatFiles//" + username + "//chatInfo.txt");
     if (chatInfoFile.exists()) {
       try {

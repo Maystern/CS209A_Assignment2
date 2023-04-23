@@ -1,6 +1,7 @@
 package cn.edu.sustech.cs209.chatting.common;
 
 public interface MessageType {
+
   String MESSAGE_LOGIN_SUCCEED = "1"; // 登录成功
   String MESSAGE_LOGIN_FAILED = "2"; // 登录失败
   String MESSAGE_REGISTER_SUCCEED = "3"; // 注册成功

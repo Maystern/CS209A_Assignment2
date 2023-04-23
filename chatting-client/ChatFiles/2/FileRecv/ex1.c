@@ -22,7 +22,6 @@ int main() {
     int max_cnt = 0, max_idx = 0;
     for (int i = 0; i < n; i++) {
         printf("Enter the string %d: ", i + 1);
-
         fgets(str[i], sizeof(str[i]), stdin);
         int cnt = count_specific_char(str[i], sizeof(str[i]), ch);
         if (cnt > max_cnt) {

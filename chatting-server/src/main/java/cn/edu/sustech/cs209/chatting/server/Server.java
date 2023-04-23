@@ -1,4 +1,5 @@
 package cn.edu.sustech.cs209.chatting.server;
+
 import cn.edu.sustech.cs209.chatting.common.Message;
 import cn.edu.sustech.cs209.chatting.common.MessageType;
 import cn.edu.sustech.cs209.chatting.common.User;
@@ -20,8 +21,10 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class Server {
+
   private ServerSocket serverSocket;
   ArrayList<User> users = new ArrayList<>();
+
   private boolean isUserLoginValid(String userName, String password) {
     for (User user : users) {
       if (user.getUsername().equals(userName) && user.getPassword().equals(password)) {
@@ -30,6 +33,7 @@ public class Server {
     }
     return false;
   }
+
   private boolean isUserRegisterValid(String userName, String password) {
     if (password.length() <= 0) {
       return false;
@@ -41,20 +45,21 @@ public class Server {
     }
     return true;
   }
+
   public Server() {
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(
         new FileInputStream("UsernameAndPassword.csv"), "UTF-8"))) {
-        String line;
-        int index = 0;
-        while ((line = reader.readLine()) != null) {
-            if (index == 0) {
-                index++;
-                continue;
-            }
-            String[] split = line.split(",");
-            users.add(new User(split[0], split[1], User.UserType.LOGIN));
-            index++;
+      String line;
+      int index = 0;
+      while ((line = reader.readLine()) != null) {
+        if (index == 0) {
+          index++;
+          continue;
         }
+        String[] split = line.split(",");
+        users.add(new User(split[0], split[1], User.UserType.LOGIN));
+        index++;
+      }
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);
     } catch (UnsupportedEncodingException e) {
@@ -71,11 +76,13 @@ public class Server {
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
         User user = (User) ois.readObject();
         if (user.getUserType() == UserType.LOGIN) {
-          Message message = new Message(System.currentTimeMillis(), "Server", user.getUsername(), "Login", MessageType.MESSAGE_LOGIN_SUCCEED);
-          if (isUserLoginValid(user.getUsername(), user.getPassword())){
+          Message message = new Message(System.currentTimeMillis(), "Server", user.getUsername(),
+              "Login", MessageType.MESSAGE_LOGIN_SUCCEED);
+          if (isUserLoginValid(user.getUsername(), user.getPassword())) {
             message.setMessageType(MessageType.MESSAGE_LOGIN_SUCCEED);
             oos.writeObject(message);
-            ServerConnectClientThread serverConnectClientThread = new ServerConnectClientThread(socket, user.getUsername());
+            ServerConnectClientThread serverConnectClientThread = new ServerConnectClientThread(
+                socket, user.getUsername());
             serverConnectClientThread.start();
             ManageClientThreads.addClientThread(user.getUsername(), serverConnectClientThread);
             ManageClientThreads.sendAllOnlineUsers(user.getUsername(), false, true);
@@ -85,7 +92,8 @@ public class Server {
             socket.close();
           }
         } else if (user.getUserType() == UserType.REGISTER) {
-          Message message = new Message(System.currentTimeMillis(), "Server", user.getUsername(), "Register", MessageType.MESSAGE_REGISTER_SUCCEED);
+          Message message = new Message(System.currentTimeMillis(), "Server", user.getUsername(),
+              "Register", MessageType.MESSAGE_REGISTER_SUCCEED);
           if (isUserRegisterValid(user.getUsername(), user.getPassword())) {
             message.setMessageType(MessageType.MESSAGE_REGISTER_SUCCEED);
             oos.writeObject(message);

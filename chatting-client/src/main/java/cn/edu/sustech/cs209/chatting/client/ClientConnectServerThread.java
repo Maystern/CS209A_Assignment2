@@ -15,15 +15,18 @@ import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ListView;
 
-public class ClientConnectServerThread extends Thread{
+public class ClientConnectServerThread extends Thread {
+
   private int nowOnlineUserCount;
   private String nowOnlineUsers;
   private Socket socket;
   Controller controller;
+
   public ClientConnectServerThread(Socket socket, Controller controller) {
     this.socket = socket;
     this.controller = controller;
   }
+
   @Override
   public void run() {
     boolean serverClosed = false;
@@ -33,10 +36,11 @@ public class ClientConnectServerThread extends Thread{
         Message message = (Message) ois.readObject();
         System.out.println("[MessageInfo] " + message);
         if (message.getMessageType().equals(MessageType.MESSAGE_GET_ONLINE_USER_LISTS)) {
-          String[] onlineUserLists =  ((String) message.getData()).split(",");
+          String[] onlineUserLists = ((String) message.getData()).split(",");
           nowOnlineUserCount = onlineUserLists.length;
           nowOnlineUsers = (String) message.getData();
-        } else if (message.getMessageType().equals(MessageType.MESSAGE_SEND_TO_ONE) || message.getMessageType().equals(MessageType.File_MESSAGE_SEND_TO_ONE)) {
+        } else if (message.getMessageType().equals(MessageType.MESSAGE_SEND_TO_ONE)
+            || message.getMessageType().equals(MessageType.File_MESSAGE_SEND_TO_ONE)) {
           if (!controller.chatExistInChatList(message.getSentBy())) {
             Platform.runLater(new Runnable() {
               @Override
@@ -49,7 +53,8 @@ public class ClientConnectServerThread extends Thread{
               }
             });
           }
-          Message tmp = new Message(System.currentTimeMillis(), message.getSentBy(), message.getSendTo(), (String) message.getData(), MessageType.MESSAGE_SEND_TO_ONE);
+          Message tmp = new Message(System.currentTimeMillis(), message.getSentBy(),
+              message.getSendTo(), (String) message.getData(), MessageType.MESSAGE_SEND_TO_ONE);
           Platform.runLater(new Runnable() {
             @Override
             public void run() {
@@ -58,7 +63,8 @@ public class ClientConnectServerThread extends Thread{
             }
           });
           System.out.println("fine.");
-          System.out.println("[Message] " + message.getSentBy() + " said to you: " + message.getData());
+          System.out.println(
+              "[Message] " + message.getSentBy() + " said to you: " + message.getData());
 
           if (message.getMessageType().equals(MessageType.File_MESSAGE_SEND_TO_ONE)) {
             try {
@@ -87,12 +93,14 @@ public class ClientConnectServerThread extends Thread{
           }
 
 
-        } else if (message.getMessageType().equals(MessageType.MESSAGE_SEND_TO_GROUP) || message.getMessageType().equals(MessageType.File_MESSAGE_SEND_TO_GROUP)) {
+        } else if (message.getMessageType().equals(MessageType.MESSAGE_SEND_TO_GROUP)
+            || message.getMessageType().equals(MessageType.File_MESSAGE_SEND_TO_GROUP)) {
           String[] selectedUsersArray = message.getSendTo().split(",");
           List<String> allUsers = new ArrayList<String>();
 
-          for (int i = 0; i < selectedUsersArray.length; i++)
+          for (int i = 0; i < selectedUsersArray.length; i++) {
             allUsers.add(selectedUsersArray[i]);
+          }
           allUsers.add(message.getSentBy());
 
           // sort the allUsers by alphabetical order
@@ -101,7 +109,7 @@ public class ClientConnectServerThread extends Thread{
 
           String chatIndex = "";
 
-          for (String selectedUser: allUsersArray) {
+          for (String selectedUser : allUsersArray) {
             chatIndex += selectedUser + ",";
           }
           if (!controller.chatExistInChatList(chatIndex)) {
@@ -111,8 +119,9 @@ public class ClientConnectServerThread extends Thread{
                 String[] selectedUsersArray = message.getSendTo().split(",");
                 List<String> allUsers = new ArrayList<String>();
 
-                for (int i = 0; i < selectedUsersArray.length; i++)
+                for (int i = 0; i < selectedUsersArray.length; i++) {
                   allUsers.add(selectedUsersArray[i]);
+                }
                 allUsers.add(message.getSentBy());
 
                 // sort the allUsers by alphabetical order
@@ -121,11 +130,11 @@ public class ClientConnectServerThread extends Thread{
 
                 String chatIndex = "";
 
-                for (String selectedUser: allUsersArray) {
+                for (String selectedUser : allUsersArray) {
                   chatIndex += selectedUser + ",";
                 }
                 List<String> tmpAllUsers = new ArrayList<String>();
-                for (String selectedUser: allUsersArray) {
+                for (String selectedUser : allUsersArray) {
                   tmpAllUsers.add(selectedUser);
                 }
                 if (!controller.chatExistInChatList(chatIndex)) {
@@ -136,7 +145,7 @@ public class ClientConnectServerThread extends Thread{
                   controller.sortChatList();
                 }
                 ChatClass tmpChatClass = null;
-                for (ChatClass chatClass: controller.getChatInfo()) {
+                for (ChatClass chatClass : controller.getChatInfo()) {
                   if (chatClass.getChatIndex().equals(chatIndex)) {
                     tmpChatClass = chatClass;
                     break;
@@ -153,8 +162,9 @@ public class ClientConnectServerThread extends Thread{
                 String[] selectedUsersArray = message.getSendTo().split(",");
                 List<String> allUsers = new ArrayList<String>();
 
-                for (int i = 0; i < selectedUsersArray.length; i++)
+                for (int i = 0; i < selectedUsersArray.length; i++) {
                   allUsers.add(selectedUsersArray[i]);
+                }
                 allUsers.add(message.getSentBy());
 
                 // sort the allUsers by alphabetical order
@@ -163,7 +173,7 @@ public class ClientConnectServerThread extends Thread{
 
                 String chatIndex = "";
 
-                for (String selectedUser: allUsersArray) {
+                for (String selectedUser : allUsersArray) {
                   chatIndex += selectedUser + ",";
                 }
 
@@ -172,7 +182,6 @@ public class ClientConnectServerThread extends Thread{
               }
             });
           }
-
 
           if (message.getMessageType().equals(MessageType.File_MESSAGE_SEND_TO_GROUP)) {
             try {
@@ -200,7 +209,9 @@ public class ClientConnectServerThread extends Thread{
             }
           }
 
-          System.out.println("[Message] " + message.getSentBy() + " said to group " + message.getSendTo() + ": " + message.getData());
+          System.out.println(
+              "[Message] " + message.getSentBy() + " said to group " + message.getSendTo() + ": "
+                  + message.getData());
         } else if (message.getMessageType().equals(MessageType.MESSAGE_LOGOUT)) {
           Platform.runLater(new Runnable() {
             @Override
@@ -210,7 +221,8 @@ public class ClientConnectServerThread extends Thread{
               controller.sortChatList();
             }
           });
-          System.out.println("[Message] " + message.getSentBy() + " said to all: " + message.getData());
+          System.out.println(
+              "[Message] " + message.getSentBy() + " said to all: " + message.getData());
         } else if (message.getMessageType().equals(MessageType.MESSAGE_LOGIN)) {
           Platform.runLater(new Runnable() {
             @Override
@@ -219,28 +231,34 @@ public class ClientConnectServerThread extends Thread{
               controller.getOnlineUsers().add(message.getData());
               controller.sortChatList();
               ChatClass tmpChatClass = null;
-              Message addedMessage = new Message(System.currentTimeMillis(), message.getData(), controller.getUsername(),
-                  "[System Message] User " + message.getData() + " is currently online and can continue chatting.",
+              Message addedMessage = new Message(System.currentTimeMillis(), message.getData(),
+                  controller.getUsername(),
+                  "[System Message] User " + message.getData()
+                      + " is currently online and can continue chatting.",
                   MessageType.MESSAGE_LOGIN);
-              for (ChatClass chatClass: controller.getChatInfo()) {
-                if (chatClass.getChatType() == ChatType.oneToOne && chatClass.getUsers().get(1).equals(message.getData())) {
+              for (ChatClass chatClass : controller.getChatInfo()) {
+                if (chatClass.getChatType() == ChatType.oneToOne && chatClass.getUsers().get(1)
+                    .equals(message.getData())) {
                   tmpChatClass = chatClass;
                   chatClass.addMessage(addedMessage);
                   break;
                 }
               }
-              ChatClass selectedChatClass = controller.chatList.getSelectionModel().getSelectedItem();
-              if (selectedChatClass != null && tmpChatClass != null && selectedChatClass.getChatIndex().equals(tmpChatClass.getChatIndex())) {
+              ChatClass selectedChatClass = controller.chatList.getSelectionModel()
+                  .getSelectedItem();
+              if (selectedChatClass != null && tmpChatClass != null
+                  && selectedChatClass.getChatIndex().equals(tmpChatClass.getChatIndex())) {
                 controller.chatContentList.getItems().add(addedMessage);
               }
               controller.sortChatList();
             }
           });
-          System.out.println("[Message] " + message.getSentBy() + " said to all: " + message.getData());
+          System.out.println(
+              "[Message] " + message.getSentBy() + " said to all: " + message.getData());
         }
       } catch (IOException e) {
-            serverClosed = true;
-            break;
+        serverClosed = true;
+        break;
       } catch (ClassNotFoundException e) {
         throw new RuntimeException(e);
       }
@@ -259,12 +277,15 @@ public class ClientConnectServerThread extends Thread{
       });
     }
   }
+
   public Socket getSocket() {
     return socket;
   }
+
   public int getCurrentOnlineCnt() {
     return nowOnlineUserCount;
   }
+
   public String getCurrentOnlineUsers() {
     return nowOnlineUsers;
   }
