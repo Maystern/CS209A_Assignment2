@@ -9,7 +9,6 @@ public class User implements Serializable {
 
   public enum UserType {LOGIN, REGISTER}
 
-  ;
   private UserType userType;
 
   public User(String userName, String password, UserType userType) {

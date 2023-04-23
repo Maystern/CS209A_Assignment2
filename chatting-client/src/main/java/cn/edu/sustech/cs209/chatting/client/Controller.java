@@ -607,9 +607,7 @@ public class Controller implements Initializable {
     sortChatList();
   }
 
-
-  public void close() {
-    userClientService.Logout();
+  public void saveHistory() {
     //如果没有ChatFiles文件夹，创建一个
     File file = new File("ChatFiles");
     if (!file.exists()) {
@@ -636,6 +634,11 @@ public class Controller implements Initializable {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public void close() {
+    userClientService.Logout();
+    saveHistory();
     System.exit(0);
   }
 

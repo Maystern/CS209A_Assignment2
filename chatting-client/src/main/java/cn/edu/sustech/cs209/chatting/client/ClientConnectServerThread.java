@@ -272,6 +272,7 @@ public class ClientConnectServerThread extends Thread {
           alert.setHeaderText("Server closed");
           alert.setContentText("Server closed, please restart the client.");
           alert.showAndWait();
+          controller.saveHistory();
           System.exit(0);
         }
       });
