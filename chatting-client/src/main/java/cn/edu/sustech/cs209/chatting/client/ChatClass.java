@@ -16,12 +16,18 @@ public class ChatClass implements Serializable {
   private String chatIndex;
   private List<Message> messages;
   private List<String> users;
+  private boolean newMessage;
 
-  public ChatClass(ChatType chatType, String chatIndex) {
+  public ChatClass(ChatType chatType, String chatIndex, boolean newMessage) {
     this.chatType = chatType;
     this.chatIndex = chatIndex;
     messages = new ArrayList<>();
     users = new ArrayList<>();
+    this.newMessage = newMessage;
+  }
+
+  public void setNewMessage(boolean newMessage) {
+    this.newMessage = newMessage;
   }
 
   public ChatType getChatType() {
@@ -47,6 +53,9 @@ public class ChatClass implements Serializable {
   @Override
   public String toString() {
     String str = "";
+    if (newMessage) {
+      str = str + "[New] ";
+    }
     if (chatType == ChatType.oneToOne) {
       if (Controller.userExistInOnlineUsers(users.get(1))) {
         str += "[Online] ";

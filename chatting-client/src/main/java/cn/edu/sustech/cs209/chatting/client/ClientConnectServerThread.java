@@ -45,7 +45,7 @@ public class ClientConnectServerThread extends Thread {
             Platform.runLater(new Runnable() {
               @Override
               public void run() {
-                ChatClass chatClass = new ChatClass(ChatType.oneToOne, message.getSentBy());
+                ChatClass chatClass = new ChatClass(ChatType.oneToOne, message.getSentBy(), true);
                 chatClass.addUsers(message.getSendTo());
                 chatClass.addUsers(message.getSentBy());
                 controller.addChat(chatClass);
@@ -138,7 +138,7 @@ public class ClientConnectServerThread extends Thread {
                   tmpAllUsers.add(selectedUser);
                 }
                 if (!controller.chatExistInChatList(chatIndex)) {
-                  ChatClass chatClass = new ChatClass(ChatType.group, chatIndex);
+                  ChatClass chatClass = new ChatClass(ChatType.group, chatIndex, true);
                   chatClass.addUsersAll(tmpAllUsers);
                   controller.getChatInfo().add(chatClass);
                   controller.chatList.getItems().add(chatClass);
@@ -241,6 +241,7 @@ public class ClientConnectServerThread extends Thread {
                     .equals(message.getData())) {
                   tmpChatClass = chatClass;
                   chatClass.addMessage(addedMessage);
+                  chatClass.setNewMessage(true);
                   break;
                 }
               }
@@ -249,6 +250,7 @@ public class ClientConnectServerThread extends Thread {
               if (selectedChatClass != null && tmpChatClass != null
                   && selectedChatClass.getChatIndex().equals(tmpChatClass.getChatIndex())) {
                 controller.chatContentList.getItems().add(addedMessage);
+                selectedChatClass.setNewMessage(false);
               }
               controller.sortChatList();
             }

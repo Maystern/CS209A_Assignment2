@@ -212,11 +212,13 @@ public class Controller implements Initializable {
       currentOnlineCntThread.start();
       chatList.getSelectionModel().selectedItemProperty()
           .addListener((observable, oldValue, newValue) -> {
+
             // 切换聊天窗口
             chatContentList.getItems().clear();
             if (newValue == null) {
               return;
             }
+            newValue.setNewMessage(false);
 
             System.out.println("all: ");
             for (ChatClass chatClass : chatInfo) {
@@ -317,7 +319,7 @@ public class Controller implements Initializable {
     // TODO: otherwise, create a new chat item in the left panel, the title should be the selected user's name
 
     if (!chatExistInChatList(user.get())) {
-      ChatClass chatClass = new ChatClass(ChatType.oneToOne, user.get());
+      ChatClass chatClass = new ChatClass(ChatType.oneToOne, user.get(), true);
       chatClass.addUsers(username);
       chatClass.addUsers(user.get());
       chatInfo.add(chatClass);
@@ -417,7 +419,7 @@ public class Controller implements Initializable {
       chatIndex += selectedUser + ",";
     }
     if (!chatExistInChatList(chatIndex)) {
-      ChatClass chatClass = new ChatClass(ChatType.group, chatIndex);
+      ChatClass chatClass = new ChatClass(ChatType.group, chatIndex, true);
       chatClass.addUsersAll(tmpSelectedUsers);
       chatInfo.add(chatClass);
       chatList.getItems().add(chatClass);
@@ -713,9 +715,11 @@ public class Controller implements Initializable {
     for (ChatClass chatClass : chatInfo) {
       if (chatClass.getChatIndex().equals(chatName)) {
         chatClass.addMessage(msg);
+        chatClass.setNewMessage(true);
         if (chatList.getSelectionModel().getSelectedItem() != null && chatClass.getChatIndex()
             .equals(chatList.getSelectionModel().getSelectedItem().getChatIndex())) {
           chatContentList.getItems().add(msg);
+          chatClass.setNewMessage(false);
         }
         sortChatList();
         break;
